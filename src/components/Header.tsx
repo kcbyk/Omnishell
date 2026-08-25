@@ -12,6 +12,7 @@ import {
   FolderTree,
   Sparkles,
   Settings,
+  Bot,
   RefreshCw,
 } from 'lucide-react';
 import { useEditor } from '../context/EditorContext';
@@ -23,6 +24,7 @@ export default function Header() {
     runPreview,
     toggleSidebar,
     toggleConsole,
+    openAiTerminal,
     isConsoleOpen,
     consoleLogs,
     openTemplateModal,
@@ -53,13 +55,15 @@ export default function Header() {
           </span>
         </div>
 
-        {/* Templates Badge Button */}
+        {/* AI Terminal Button */}
         <button
-          onClick={openTemplateModal}
-          className="hidden sm:flex items-center space-x-1 px-2 py-1 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[11px] font-mono transition"
+          onClick={openAiTerminal}
+          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold transition active:scale-95 shadow-sm"
+          title="Open AI Agent Terminal"
         >
-          <Sparkles className="w-3 h-3" />
-          <span>Starter Packs</span>
+          <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Terminal</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </button>
       </div>
 

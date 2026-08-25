@@ -19,6 +19,7 @@ interface EditorContextType {
   isConsoleOpen: boolean;
   isTemplateModalOpen: boolean;
   isSettingsModalOpen: boolean;
+  isAiTerminalOpen: boolean;
   consoleLogs: ConsoleLog[];
   previewUrl: string;
   previewKey: number;
@@ -26,6 +27,7 @@ interface EditorContextType {
   // Actions
   setActiveFileId: (id: string) => void;
   updateFileContent: (id: string, content: string) => void;
+  appendCodeToFile: (fileName: string, codeToAppend: string) => void;
   createFile: (name: string, type?: 'file' | 'folder', parentId?: string | null) => void;
   deleteFile: (id: string) => void;
   renameFile: (id: string, newName: string) => void;
@@ -39,6 +41,9 @@ interface EditorContextType {
   setAutoRun: (auto: boolean) => void;
   toggleSidebar: () => void;
   toggleConsole: () => void;
+  toggleAiTerminal: () => void;
+  openAiTerminal: () => void;
+  closeAiTerminal: () => void;
   openTemplateModal: () => void;
   closeTemplateModal: () => void;
   openSettingsModal: () => void;
@@ -67,6 +72,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const [isConsoleOpen, setIsConsoleOpen] = useState<boolean>(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
+  const [isAiTerminalOpen, setIsAiTerminalOpen] = useState<boolean>(false);
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [previewKey, setPreviewKey] = useState<number>(1);
@@ -163,7 +169,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       if (linkRegex.test(html)) {
         html = html.replace(linkRegex, `<style>\n${css.content}\n</style>`);
       } else {
-        // Append to head if not explicitly linked
         html = html.replace('</head>', `<style>\n${css.content}\n</style></head>`);
       }
     }
@@ -175,7 +180,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       if (scriptRegex.test(html)) {
         html = html.replace(scriptRegex, `<script>\n${js.content}\n</script>`);
       } else {
-        // Append before </body>
         html = html.replace('</body>', `<script>\n${js.content}\n</script></body>`);
       }
     }
@@ -212,6 +216,23 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const updateFileContent = (id: string, newContent: string) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === id ? { ...f, content: newContent } : f))
+    );
+  };
+
+  const appendCodeToFile = (fileName: string, codeToAppend: string) => {
+    setFiles((prev) =>
+      prev.map((f) => {
+        if (f.name.toLowerCase() === fileName.toLowerCase()) {
+          let updated = f.content;
+          if (fileName.endsWith('.html') && updated.includes('</body>')) {
+            updated = updated.replace('</body>', `\n  ${codeToAppend}\n</body>`);
+          } else {
+            updated = updated + '\n\n' + codeToAppend;
+          }
+          return { ...f, content: updated };
+        }
+        return f;
+      })
     );
   };
 
@@ -318,11 +339,13 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         isConsoleOpen,
         isTemplateModalOpen,
         isSettingsModalOpen,
+        isAiTerminalOpen,
         consoleLogs,
         previewUrl,
         previewKey,
         setActiveFileId,
         updateFileContent,
+        appendCodeToFile,
         createFile,
         deleteFile,
         renameFile,
@@ -336,6 +359,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         setAutoRun,
         toggleSidebar: () => setIsSidebarOpen((v) => !v),
         toggleConsole: () => setIsConsoleOpen((v) => !v),
+        toggleAiTerminal: () => setIsAiTerminalOpen((v) => !v),
+        openAiTerminal: () => setIsAiTerminalOpen(true),
+        closeAiTerminal: () => setIsAiTerminalOpen(false),
         openTemplateModal: () => setIsTemplateModalOpen(true),
         closeTemplateModal: () => setIsTemplateModalOpen(false),
         openSettingsModal: () => setIsSettingsModalOpen(true),

@@ -10,6 +10,7 @@ import PreviewFrame from '../components/PreviewFrame';
 import ConsoleDrawer from '../components/ConsoleDrawer';
 import TemplateModal from '../components/TemplateModal';
 import SettingsModal from '../components/SettingsModal';
+import AiTerminalModal from '../components/AiTerminalModal';
 
 function EditorApp() {
   const { viewMode } = useEditor();
@@ -51,8 +52,11 @@ function EditorApp() {
         </div>
       </div>
 
-      {/* Bottom Console Drawer */}
+      {/* Bottom DevTools Console Drawer */}
       <ConsoleDrawer />
+
+      {/* Interactive AI Agent Terminal Modal */}
+      <AiTerminalModal />
 
       {/* Modals */}
       <TemplateModal />
