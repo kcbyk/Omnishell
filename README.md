@@ -1,52 +1,59 @@
-# ⚡ OmniOS - Next.js Mobile Web Experience
+# ⚡ SPCK Web IDE - Mobile & Desktop Code Studio
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js&logoColor=white)](https://nextjs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![PWA Ready](https://img.shields.io/badge/PWA-Ready-00F0FF)](https://web.dev/progressive-web-apps/)
+[![Live Sandbox](https://img.shields.io/badge/Sandbox-Live_Iframe-00FF66)](https://github.com)
 
-> **Mobil öncelikli (Mobile-First), 120 FPS akıcılığında, bilimkurgu estetiğine sahip interaktif bir Web İşletim Sistemi ve Dashboard.**
-
----
-
-## 📱 Öne Çıkan Özellikler
-
-1. **⚡ İnteraktif Dynamic Island**:
-   * Çalan müziği, aktif odak sayacını ve sistem bildirimlerini gösteren, tıklandığında akıcı bir animasyonla genişleyen ada.
-
-2. **🤖 OmniMind AI Asistanı (`AiChatView`)**:
-   * Kod blokları, sözdizimi kopyalama, hızlı prompt önerileri ve canlı yazım animasyonları içeren yapay zeka sohbeti.
-
-3. **💸 Kripto & Web3 Finans Portföyü (`CryptoView`)**:
-   * Canlı Bitcoin, Ethereum, Solana ve OmniToken fiyatları, mini dalga formu grafiği ve anlık token takas simülatörü.
-
-4. **⏱️ Deep Focus & Soundscape Stüdyosu (`FocusView`)**:
-   * Dairesel SVG Pomodoro sayacı, Lofi / Neon Rain / Gece Kafesi arka plan ses mikseri ve odak sprintleri.
-
-5. **🎛️ Control Center & Taktiksel Hızlı Ayarlar**:
-   * Ekran parlaklığı, ses seviyesi, Wi-Fi, Bluetooth, Flaşör (Torch) ve Ultra Eco Mode kontrolleri.
-
-6. **🎨 Kişiselleştirme & Widget Laboratuvarı (`AppsView`)**:
-   * OLED Void, Cyber Neon ve Matrix duvar kağıtları ile neon vurgu rengi değiştirici.
+> **Spck Editor tarzında, hem mobilde hem masaüstünde çalışan, sıfır gecikmeli, canlı kod önizleme ve DevTools konsoluna sahip Web IDE.**
 
 ---
 
-## 🚀 Başlarken (Yerel Kurulum)
+## 🔥 Gerçekten Çalışan Özellikler
+
+1. 📂 **Çoklu Dosya Proje Yöneticisi (File Explorer)**:
+   * `.html`, `.css`, `.js`, `.json`, `.md` dosyaları oluşturma, yeniden adlandırma, silme ve düzenleme.
+   * Sekmeli dosya gezgini (Tabs bar) ile açık dosyalar arasında hızlı geçiş.
+
+2. ⌨️ **Spck Mobil Hızlı Klavye Çubuğu (Accessory Bar)**:
+   * Telefondayken kod yazmayı kolaylaştıran özel sembol çubuğu: `< > / { } [ ] ( ) = " ' ; : $ ! & | + - * ?`.
+   * `Tab` girintisi (2 boşluk ekleme), `Undo` (Geri al) ve `Redo` (İleri al) düğmeleri.
+
+3. 🚀 **Canlı Sandboxed Önizleme (Live Preview Sandbox)**:
+   * HTML, CSS ve JavaScript kodlarını anında izole iframe içinde çalıştırır.
+   * **Cihaz Görünüm Değiştirici**: Mobil (375px), Tablet (768px) ve Masaüstü (100%) boyutları arasında tek tıkla geçiş.
+   * Önizlemeyi ayrı tarayıcı sekmesinde açma desteği.
+
+4. 📟 **Entegre DevTools Konsolu (Console REPL)**:
+   * Iframe içindeki `console.log`, `console.warn`, `console.error` çıktılarını yakalar ve ekranda gösterir.
+   * Canlı JavaScript REPL komut satırı (`> 2 + 2`, `> document.title`).
+
+5. 📦 **Hazır Başlangıç Şablonları (Starter Templates)**:
+   * **Cyber Matrix Rain Animation**: HTML5 Canvas Matrix dijital yağmur efekti.
+   * **Neon Paddle & Ball Arcade Game**: Dokunmatik kontrollü 60 FPS Canvas oyunu.
+   * **Modern Glassmorphic QuickTask**: Tailwind CDN + LocalStorage görev yöneticisi.
+
+6. 💾 **Otomatik Kaydetme & ZIP Dışa Aktarma**:
+   * Yazdığın kodlar tarayıcı `localStorage` içinde anlık saklanır, sayfa yenilense bile kaybolmaz.
+   * Projeni tek tıkla `.zip` arşivi olarak bilgisayarına/telefonuna indirebilirsin.
+
+---
+
+## 🛠️ Yerel Geliştirme
 
 ```bash
-# Bağımlılıkları yükle
+# Paketleri yükle
 npm install
 
-# Geliştirme sunucusunu başlat (0.0.0.0:3000)
+# Geliştirme sunucusunu başlat
 npm run dev
 
-# Canlı derleme (Production Build)
+# Canlı derleme (Production)
 npm run build
 npm run start
 ```
 
 ---
 
-## 🌐 Vercel / Netlify Tek Tıkla Canlıya Alma
-
-Bu repo doğrudan [Vercel](https://vercel.com) veya [Netlify](https://netlify.com) üzerine aktarıldığında sıfır yapılandırmayla canlıya geçer.
+## 🌐 Vercel / Netlify Canlı Dağıtım
+Proje doğrudan Vercel, Netlify veya Cloudflare Pages üzerine aktarılıp tek tıkla yayına alınabilir.
