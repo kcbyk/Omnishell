@@ -1,74 +1,71 @@
 'use client';
 
 import React from 'react';
-import { EditorProvider, useEditor } from '../context/EditorContext';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import TabBar from '../components/TabBar';
-import CodeEditor from '../components/CodeEditor';
-import PreviewFrame from '../components/PreviewFrame';
-import ConsoleDrawer from '../components/ConsoleDrawer';
-import TemplateModal from '../components/TemplateModal';
-import SettingsModal from '../components/SettingsModal';
-import AiTerminalModal from '../components/AiTerminalModal';
+import { PlayerProvider, usePlayer } from '../context/PlayerContext';
+import DesktopSidebar from '../components/layout/DesktopSidebar';
+import TopNav from '../components/layout/TopNav';
+import BottomPlayer from '../components/player/BottomPlayer';
+import MobileBottomNav from '../components/layout/MobileBottomNav';
+import MobileMiniPlayer from '../components/player/MobileMiniPlayer';
+import MobileFullScreenPlayer from '../components/player/MobileFullScreenPlayer';
+import LyricsView from '../components/player/LyricsView';
+import QueueModal from '../components/player/QueueModal';
+import HomeView from '../components/views/HomeView';
+import SearchView from '../components/views/SearchView';
+import LibraryView from '../components/views/LibraryView';
+import PlaylistView from '../components/views/PlaylistView';
 
-function EditorApp() {
-  const { viewMode } = useEditor();
+function SpotifyApp() {
+  const { activeView } = usePlayer();
 
   return (
-    <div className="w-full h-[100dvh] flex flex-col bg-[#070A10] text-slate-100 overflow-hidden font-sans">
-      {/* Top Header */}
-      <Header />
-
-      {/* Main Workspace Layout */}
+    <div className="w-full h-[100dvh] flex flex-col bg-black text-white font-sans overflow-hidden select-none">
+      {/* Main App Workspace (Sidebar + Content View) */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Sidebar File Explorer */}
-        <Sidebar />
+        {/* Left Desktop Sidebar */}
+        <DesktopSidebar />
 
-        {/* Center Workspace (Editor / Preview / Split) */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-          {/* Editor Container */}
-          {(viewMode === 'editor' || viewMode === 'split') && (
-            <div
-              className={`flex-1 flex flex-col h-full overflow-hidden ${
-                viewMode === 'split' ? 'md:w-1/2 md:border-r border-[#1E293B]' : 'w-full'
-              }`}
-            >
-              <TabBar />
-              <CodeEditor />
-            </div>
-          )}
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col bg-[#121212] md:rounded-xl md:my-2 md:mr-2 overflow-hidden relative shadow-2xl">
+          {/* Top Sticky Header */}
+          <TopNav />
 
-          {/* Preview Container */}
-          {(viewMode === 'preview' || viewMode === 'split') && (
-            <div
-              className={`flex-1 flex flex-col h-full overflow-hidden ${
-                viewMode === 'split' ? 'md:w-1/2' : 'w-full'
-              }`}
-            >
-              <PreviewFrame />
-            </div>
-          )}
-        </div>
+          {/* Dynamic Views */}
+          <div className="flex-1 overflow-hidden relative flex flex-col">
+            {activeView === 'home' && <HomeView />}
+            {activeView === 'search' && <SearchView />}
+            {activeView === 'library' && <LibraryView />}
+            {activeView === 'playlist' && <PlaylistView />}
+            {activeView === 'liked' && <PlaylistView isLikedSongsView={true} />}
+          </div>
+        </main>
       </div>
 
-      {/* Bottom DevTools Console Drawer */}
-      <ConsoleDrawer />
+      {/* Desktop Persistent Bottom Player */}
+      <BottomPlayer />
 
-      {/* Interactive AI Agent Terminal Modal */}
-      <AiTerminalModal />
+      {/* Mobile Floating Mini Player */}
+      <MobileMiniPlayer />
 
-      {/* Modals */}
-      <TemplateModal />
-      <SettingsModal />
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav />
+
+      {/* Fullscreen Player Modal */}
+      <MobileFullScreenPlayer />
+
+      {/* Synchronized Karaoke Lyrics View */}
+      <LyricsView />
+
+      {/* Queue Modal */}
+      <QueueModal />
     </div>
   );
 }
 
 export default function Home() {
   return (
-    <EditorProvider>
-      <EditorApp />
-    </EditorProvider>
+    <PlayerProvider>
+      <SpotifyApp />
+    </PlayerProvider>
   );
 }

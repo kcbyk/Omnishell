@@ -1,229 +1,243 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-  CloudSun,
-  Shield,
-  Zap,
-  TrendingUp,
-  Sliders,
-  CheckCircle2,
-  Circle,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Sparkles,
-  Flame,
-  Battery,
-  Cpu,
-} from 'lucide-react';
-import confetti from 'canvas-confetti';
+import React from 'react';
+import { Play, Pause, Heart } from 'lucide-react';
+import { usePlayer } from '../../context/PlayerContext';
+import { TRACKS, PLAYLISTS } from '../../data/musicData';
+import { Playlist } from '../../types/spotify';
 
-interface HomeViewProps {
-  onOpenControlCenter: () => void;
-  onNavigateTab: (tab: 'home' | 'ai' | 'crypto' | 'focus' | 'apps') => void;
+interface QuickTile {
+  id: string;
+  title: string;
+  cover: string;
+  isLikedCard?: boolean;
+  playlist?: Playlist;
 }
 
-export default function HomeView({ onOpenControlCenter, onNavigateTab }: HomeViewProps) {
-  const [time, setTime] = useState<string>('');
-  const [dateStr, setDateStr] = useState<string>('');
-  const [habits, setHabits] = useState([
-    { id: 1, title: 'Code Next.js Project', done: true, points: 50 },
-    { id: 2, title: 'Drink 2L Clean Water', done: true, points: 20 },
-    { id: 3, title: '45m Gym / Cardio Workout', done: false, points: 100 },
-    { id: 4, title: 'Read 20 pages Architecture', done: false, points: 40 },
-  ]);
+export default function HomeView() {
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    togglePlay,
+    navigateTo,
+    headerColor,
+  } = usePlayer();
 
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-      setDateStr(now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const toggleHabit = (id: number) => {
-    setHabits((prev) =>
-      prev.map((h) => {
-        if (h.id === id) {
-          const nextState = !h.done;
-          if (nextState) {
-            confetti({
-              particleCount: 50,
-              spread: 60,
-              origin: { y: 0.8 },
-              colors: ['#00F0FF', '#FF0055', '#00FF66'],
-            });
-          }
-          return { ...h, done: nextState };
-        }
-        return h;
-      })
-    );
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   };
 
-  const completedCount = habits.filter((h) => h.done).length;
+  const quickTiles: QuickTile[] = [
+    {
+      id: 'liked',
+      title: 'Liked Songs',
+      cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
+      isLikedCard: true,
+    },
+    ...PLAYLISTS.slice(0, 5).map((p) => ({
+      id: p.id,
+      title: p.title,
+      cover: p.coverArt,
+      playlist: p,
+      isLikedCard: false,
+    })),
+  ];
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 no-scrollbar pb-24">
-      {/* Top Header Card */}
-      <div className="flex items-center justify-between pt-1">
-        <div>
-          <div className="flex items-center space-x-1.5 text-xs text-cyan-400 font-mono font-medium">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-            <span>SYSTEM ONLINE</span>
-          </div>
-          <h1 className="text-xl font-black text-white tracking-tight mt-0.5">Welcome, Pilot</h1>
-        </div>
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 space-y-8 no-scrollbar pb-32">
+      {/* Dynamic Ambient Header Glow */}
+      <div
+        style={{
+          background: `linear-gradient(to bottom, ${headerColor}33 0%, transparent 100%)`,
+        }}
+        className="absolute top-0 left-0 right-0 h-80 pointer-events-none -z-10 transition-colors duration-700"
+      />
 
-        {/* Quick buttons */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={onOpenControlCenter}
-            className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition active:scale-95 shadow-md"
-            title="Open Control Deck"
-          >
-            <Sliders className="w-4 h-4 text-cyan-400" />
-          </button>
-        </div>
+      {/* Greeting Title */}
+      <div className="pt-2">
+        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+          {getGreeting()}
+        </h1>
       </div>
 
-      {/* Weather & Live Widget Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Weather card */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#121826] to-[#1A2234] border border-cyan-500/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-xl"></div>
-          <div className="flex items-center justify-between">
-            <CloudSun className="w-6 h-6 text-cyan-400" />
-            <span className="text-[10px] font-mono text-cyan-300/80 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
-              AQI 24
-            </span>
-          </div>
-          <div className="mt-2.5">
-            <div className="text-2xl font-black text-white font-mono">24°C</div>
-            <div className="text-[11px] font-medium text-slate-300">Balıkesir • Clear Sky</div>
-          </div>
-        </div>
+      {/* 6 Quick Grid Tiles */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {quickTiles.map((tile) => {
+          const isCurrentPlaylist =
+            tile.playlist &&
+            currentTrack &&
+            tile.playlist.tracks.some((t) => t.id === currentTrack.id);
 
-        {/* Dynamic Streak card */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#121826] to-[#251522] border border-pink-500/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full blur-xl"></div>
-          <div className="flex items-center justify-between">
-            <Flame className="w-6 h-6 text-pink-500" />
-            <span className="text-[10px] font-mono text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20">
-              14 DAYS
-            </span>
-          </div>
-          <div className="mt-2.5">
-            <div className="text-2xl font-black text-white font-mono">Streak 🔥</div>
-            <div className="text-[11px] font-medium text-slate-300">Level 8 Cyber Monk</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Cyber Wallet Card */}
-      <div className="p-4 rounded-3xl bg-gradient-to-tr from-[#0E131F] via-[#161F33] to-[#0A101D] border border-white/10 shadow-xl shadow-black/40 relative overflow-hidden">
-        <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-          <span className="flex items-center gap-1.5 text-cyan-400">
-            <Shield className="w-3.5 h-3.5" /> OmniOS Vault
-          </span>
-          <span className="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-            +18.4% (24h)
-          </span>
-        </div>
-
-        <div className="mt-3">
-          <div className="text-xs text-slate-400 uppercase tracking-widest font-mono">Total Balance</div>
-          <div className="text-3xl font-black text-white font-mono tracking-tight mt-1">
-            $42,890<span className="text-cyan-400 text-xl">.50</span>
-          </div>
-        </div>
-
-        {/* Quick Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/5">
-          <button
-            onClick={() => onNavigateTab('crypto')}
-            className="py-2.5 px-3 rounded-xl bg-cyan-400 text-black font-bold text-xs flex items-center justify-center space-x-1 hover:bg-cyan-300 active:scale-95 transition shadow-lg shadow-cyan-400/20"
-          >
-            <ArrowUpRight className="w-4 h-4" />
-            <span>Send / Swap</span>
-          </button>
-          <button
-            onClick={() => onNavigateTab('ai')}
-            className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center justify-center space-x-1 active:scale-95 transition border border-white/10"
-          >
-            <Sparkles className="w-4 h-4 text-pink-400" />
-            <span>Ask OmniAI</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Habits / Daily Quests */}
-      <div className="p-4 rounded-2xl bg-[#121826]/80 border border-white/5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400">
-              <Zap className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="text-xs font-bold text-white tracking-wider font-mono uppercase">Daily Quests</h3>
-          </div>
-          <span className="text-[11px] font-mono text-slate-400">
-            {completedCount} / {habits.length} Complete
-          </span>
-        </div>
-
-        {/* Habit List */}
-        <div className="space-y-2">
-          {habits.map((habit) => (
+          return (
             <div
-              key={habit.id}
-              onClick={() => toggleHabit(habit.id)}
-              className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                habit.done
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-300'
-                  : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] text-slate-200'
-              }`}
+              key={tile.id}
+              onClick={() => {
+                if (tile.isLikedCard) navigateTo('liked');
+                else if (tile.playlist) navigateTo('playlist', tile.playlist);
+              }}
+              className="group bg-[#242424]/70 hover:bg-[#282828] rounded-md flex items-center overflow-hidden cursor-pointer transition-all shadow-md relative pr-3"
             >
-              <div className="flex items-center space-x-2.5">
-                {habit.done ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                ) : (
-                  <Circle className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                )}
-                <span className={`text-xs font-medium ${habit.done ? 'line-through text-slate-400' : ''}`}>
-                  {habit.title}
-                </span>
-              </div>
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
-                +{habit.points} XP
+              {tile.isLikedCard ? (
+                <div className="w-16 md:w-20 h-16 md:h-20 bg-gradient-to-br from-[#450af5] to-[#8e8ee5] flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Heart className="w-7 h-7 fill-white text-white" />
+                </div>
+              ) : (
+                <img
+                  src={tile.cover}
+                  alt={tile.title}
+                  className="w-16 md:w-20 h-16 md:h-20 object-cover flex-shrink-0 shadow-lg"
+                />
+              )}
+
+              <span className="font-bold text-xs md:text-sm text-white px-3 truncate flex-1">
+                {tile.title}
               </span>
+
+              {/* Play Button that slides in on hover */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (tile.playlist && tile.playlist.tracks.length > 0) {
+                    if (isCurrentPlaylist && isPlaying) togglePlay();
+                    else playTrack(tile.playlist.tracks[0], tile.playlist);
+                  } else if (tile.isLikedCard && TRACKS.length > 0) {
+                    playTrack(TRACKS[0]);
+                  }
+                }}
+                className={`w-10 h-10 rounded-full bg-[#1DB954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 ${
+                  isCurrentPlaylist && isPlaying ? 'opacity-100 translate-y-0' : ''
+                }`}
+              >
+                {isCurrentPlaylist && isPlaying ? (
+                  <Pause className="w-4 h-4 fill-black" />
+                ) : (
+                  <Play className="w-4 h-4 fill-black ml-0.5" />
+                )}
+              </button>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* Live System Specs Bar */}
-      <div className="p-3.5 rounded-2xl bg-[#0E131F] border border-white/5 flex items-center justify-around text-xs font-mono">
-        <div className="flex items-center space-x-2">
-          <Cpu className="w-4 h-4 text-cyan-400" />
-          <div>
-            <div className="text-[10px] text-slate-400">CPU Load</div>
-            <div className="font-bold text-white">28% (8-Core)</div>
-          </div>
+      {/* Made For You Shelf */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">
+            Made For You
+          </h2>
+          <span className="text-xs font-bold text-[#b3b3b3] hover:underline cursor-pointer">
+            Show all
+          </span>
         </div>
 
-        <div className="h-6 w-px bg-white/10" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {PLAYLISTS.map((playlist) => {
+            const isCurrent =
+              currentTrack && playlist.tracks.some((t) => t.id === currentTrack.id);
 
-        <div className="flex items-center space-x-2">
-          <Battery className="w-4 h-4 text-emerald-400" />
-          <div>
-            <div className="text-[10px] text-slate-400">Battery</div>
-            <div className="font-bold text-white">98% Ultra</div>
-          </div>
+            return (
+              <div
+                key={playlist.id}
+                onClick={() => navigateTo('playlist', playlist)}
+                className="group bg-[#181818] hover:bg-[#282828] p-3.5 rounded-xl flex flex-col cursor-pointer transition-all duration-300 relative"
+              >
+                <div className="relative aspect-square w-full rounded-lg overflow-hidden mb-3 shadow-lg">
+                  <img
+                    src={playlist.coverArt}
+                    alt={playlist.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {/* Floating Green Play Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (playlist.tracks.length > 0) {
+                        if (isCurrent && isPlaying) togglePlay();
+                        else playTrack(playlist.tracks[0], playlist);
+                      }
+                    }}
+                    className={`absolute bottom-2 right-2 w-11 h-11 rounded-full bg-[#1DB954] hover:bg-[#1ed760] hover:scale-105 shadow-2xl flex items-center justify-center text-black transition-all duration-200 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 ${
+                      isCurrent && isPlaying ? 'opacity-100 translate-y-0' : ''
+                    }`}
+                  >
+                    {isCurrent && isPlaying ? (
+                      <Pause className="w-5 h-5 fill-black" />
+                    ) : (
+                      <Play className="w-5 h-5 fill-black ml-0.5" />
+                    )}
+                  </button>
+                </div>
+
+                <h3 className="text-sm font-bold text-white truncate">{playlist.title}</h3>
+                <p className="text-xs text-[#b3b3b3] line-clamp-2 mt-1 leading-relaxed">
+                  {playlist.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </section>
+
+      {/* Trending Tracks Shelf */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">
+            Trending Global Tracks
+          </h2>
+          <span className="text-xs font-bold text-[#b3b3b3] hover:underline cursor-pointer">
+            Show all
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {TRACKS.map((track) => {
+            const isCurrent = currentTrack?.id === track.id;
+
+            return (
+              <div
+                key={track.id}
+                onClick={() => playTrack(track)}
+                className="group bg-[#181818] hover:bg-[#282828] p-3.5 rounded-xl flex flex-col cursor-pointer transition-all duration-300 relative"
+              >
+                <div className="relative aspect-square w-full rounded-lg overflow-hidden mb-3 shadow-lg">
+                  <img
+                    src={track.albumArt}
+                    alt={track.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isCurrent) togglePlay();
+                      else playTrack(track);
+                    }}
+                    className={`absolute bottom-2 right-2 w-11 h-11 rounded-full bg-[#1DB954] hover:bg-[#1ed760] hover:scale-105 shadow-2xl flex items-center justify-center text-black transition-all duration-200 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 ${
+                      isCurrent && isPlaying ? 'opacity-100 translate-y-0' : ''
+                    }`}
+                  >
+                    {isCurrent && isPlaying ? (
+                      <Pause className="w-5 h-5 fill-black" />
+                    ) : (
+                      <Play className="w-5 h-5 fill-black ml-0.5" />
+                    )}
+                  </button>
+                </div>
+
+                <h3 className={`text-sm font-bold truncate ${isCurrent ? 'text-[#1DB954]' : 'text-white'}`}>
+                  {track.title}
+                </h3>
+                <p className="text-xs text-[#b3b3b3] truncate mt-1">
+                  {track.artist}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
