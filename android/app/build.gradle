@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.cyberdeck.omnishell"
-    compileSdkVersion 34
+    compileSdk 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -36,14 +36,10 @@ android {
         jvmTarget = '17'
     }
 
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
     defaultConfig {
         applicationId "com.cyberdeck.omnishell"
-        minSdkVersion 24
-        targetSdkVersion 34
+        minSdk 24
+        targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -54,7 +50,6 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled false
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             signingConfig signingConfigs.debug
@@ -64,8 +59,4 @@ android {
 
 flutter {
     source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
