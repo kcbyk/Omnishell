@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Play, Pause, Heart } from 'lucide-react';
+import { Play, Pause, Heart, Youtube, Flame, Sparkles } from 'lucide-react';
 import { usePlayer } from '../../context/PlayerContext';
 import { TRACKS, PLAYLISTS } from '../../data/musicData';
-import { Playlist } from '../../types/spotify';
+import { Playlist, Track } from '../../types/spotify';
 
 interface QuickTile {
   id: string;
@@ -22,6 +22,8 @@ export default function HomeView() {
     togglePlay,
     navigateTo,
     headerColor,
+    youtubeTrendingTracks,
+    isLoadingTrending,
   } = usePlayer();
 
   const getGreeting = () => {
@@ -58,10 +60,14 @@ export default function HomeView() {
       />
 
       {/* Greeting Title */}
-      <div className="pt-2">
+      <div className="pt-2 flex items-center justify-between">
         <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
           {getGreeting()}
         </h1>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold">
+          <Youtube className="w-4 h-4 text-rose-500" />
+          <span>YouTube Audio Live</span>
+        </div>
       </div>
 
       {/* 6 Quick Grid Tiles */}
@@ -123,11 +129,79 @@ export default function HomeView() {
         })}
       </div>
 
+      {/* Real YouTube Trending Hits Shelf */}
+      {youtubeTrendingTracks.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Flame className="w-5 h-5 text-rose-500 animate-pulse" />
+              <h2 className="text-xl md:text-2xl font-black text-white hover:underline cursor-pointer">
+                Live YouTube Top 50 Hits
+              </h2>
+            </div>
+            <span
+              onClick={() => navigateTo('search')}
+              className="text-xs font-bold text-[#1DB954] hover:underline cursor-pointer"
+            >
+              Search Any Song &gt;
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {youtubeTrendingTracks.slice(0, 12).map((track) => {
+              const isCurrent = currentTrack?.id === track.id;
+
+              return (
+                <div
+                  key={track.id}
+                  onClick={() => playTrack(track)}
+                  className="group bg-[#181818] hover:bg-[#282828] p-3.5 rounded-xl flex flex-col cursor-pointer transition-all duration-300 relative"
+                >
+                  <div className="relative aspect-square w-full rounded-lg overflow-hidden mb-3 shadow-lg">
+                    <img
+                      src={track.albumArt}
+                      alt={track.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isCurrent) togglePlay();
+                        else playTrack(track);
+                      }}
+                      className={`absolute bottom-2 right-2 w-11 h-11 rounded-full bg-[#1DB954] hover:bg-[#1ed760] hover:scale-105 shadow-2xl flex items-center justify-center text-black transition-all duration-200 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 ${
+                        isCurrent && isPlaying ? 'opacity-100 translate-y-0' : ''
+                      }`}
+                    >
+                      {isCurrent && isPlaying ? (
+                        <Pause className="w-5 h-5 fill-black" />
+                      ) : (
+                        <Play className="w-5 h-5 fill-black ml-0.5" />
+                      )}
+                    </button>
+                  </div>
+
+                  <h3 className={`text-sm font-bold truncate ${isCurrent ? 'text-[#1DB954]' : 'text-white'}`}>
+                    {track.title}
+                  </h3>
+                  <p className="text-xs text-[#b3b3b3] truncate mt-0.5">
+                    {track.artist}
+                  </p>
+                  <span className="text-[10px] text-rose-400/80 font-mono mt-1">
+                    {track.plays}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Made For You Shelf */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">
-            Made For You
+            Spotify Editorial Playlists
           </h2>
           <span className="text-xs font-bold text-[#b3b3b3] hover:underline cursor-pointer">
             Show all
@@ -175,63 +249,6 @@ export default function HomeView() {
                 <h3 className="text-sm font-bold text-white truncate">{playlist.title}</h3>
                 <p className="text-xs text-[#b3b3b3] line-clamp-2 mt-1 leading-relaxed">
                   {playlist.description}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Trending Tracks Shelf */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">
-            Trending Global Tracks
-          </h2>
-          <span className="text-xs font-bold text-[#b3b3b3] hover:underline cursor-pointer">
-            Show all
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {TRACKS.map((track) => {
-            const isCurrent = currentTrack?.id === track.id;
-
-            return (
-              <div
-                key={track.id}
-                onClick={() => playTrack(track)}
-                className="group bg-[#181818] hover:bg-[#282828] p-3.5 rounded-xl flex flex-col cursor-pointer transition-all duration-300 relative"
-              >
-                <div className="relative aspect-square w-full rounded-lg overflow-hidden mb-3 shadow-lg">
-                  <img
-                    src={track.albumArt}
-                    alt={track.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isCurrent) togglePlay();
-                      else playTrack(track);
-                    }}
-                    className={`absolute bottom-2 right-2 w-11 h-11 rounded-full bg-[#1DB954] hover:bg-[#1ed760] hover:scale-105 shadow-2xl flex items-center justify-center text-black transition-all duration-200 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 ${
-                      isCurrent && isPlaying ? 'opacity-100 translate-y-0' : ''
-                    }`}
-                  >
-                    {isCurrent && isPlaying ? (
-                      <Pause className="w-5 h-5 fill-black" />
-                    ) : (
-                      <Play className="w-5 h-5 fill-black ml-0.5" />
-                    )}
-                  </button>
-                </div>
-
-                <h3 className={`text-sm font-bold truncate ${isCurrent ? 'text-[#1DB954]' : 'text-white'}`}>
-                  {track.title}
-                </h3>
-                <p className="text-xs text-[#b3b3b3] truncate mt-1">
-                  {track.artist}
                 </p>
               </div>
             );

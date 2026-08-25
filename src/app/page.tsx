@@ -10,6 +10,7 @@ import MobileMiniPlayer from '../components/player/MobileMiniPlayer';
 import MobileFullScreenPlayer from '../components/player/MobileFullScreenPlayer';
 import LyricsView from '../components/player/LyricsView';
 import QueueModal from '../components/player/QueueModal';
+import YouTubeAudioBridge from '../components/player/YouTubeAudioBridge';
 import HomeView from '../components/views/HomeView';
 import SearchView from '../components/views/SearchView';
 import LibraryView from '../components/views/LibraryView';
@@ -20,6 +21,9 @@ function SpotifyApp() {
 
   return (
     <div className="w-full h-[100dvh] flex flex-col bg-black text-white font-sans overflow-hidden select-none">
+      {/* Background YouTube Audio Bridge */}
+      <YouTubeAudioBridge />
+
       {/* Main App Workspace (Sidebar + Content View) */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Desktop Sidebar */}

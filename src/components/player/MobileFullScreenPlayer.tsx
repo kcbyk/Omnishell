@@ -17,6 +17,8 @@ import {
   Laptop2,
   Mic2,
   Maximize2,
+  Youtube,
+  Tv,
 } from 'lucide-react';
 import { usePlayer } from '../../context/PlayerContext';
 import confetti from 'canvas-confetti';
@@ -42,6 +44,8 @@ export default function MobileFullScreenPlayer() {
     setIsFullScreenPlayerOpen,
     setIsLyricsOpen,
     setIsQueueModalOpen,
+    isVideoMode,
+    toggleVideoMode,
   } = usePlayer();
 
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -89,11 +93,12 @@ export default function MobileFullScreenPlayer() {
         </button>
 
         <div className="text-center overflow-hidden px-4">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-white/70 font-mono">
-            Playing From Playlist
+          <div className="text-[10px] font-bold uppercase tracking-widest text-white/70 font-mono flex items-center justify-center gap-1">
+            {currentTrack.isYouTube && <Youtube className="w-3 h-3 text-rose-500" />}
+            <span>{currentTrack.isYouTube ? 'YouTube Lossless Audio' : 'Playing From Playlist'}</span>
           </div>
           <div className="text-xs font-bold text-white truncate">
-            {activePlaylist?.title || 'Spotify Top Hits'}
+            {activePlaylist?.title || currentTrack.album || 'Spotify Music'}
           </div>
         </div>
 
@@ -122,8 +127,14 @@ export default function MobileFullScreenPlayer() {
           <h2 className="text-xl md:text-2xl font-black text-white truncate tracking-tight">
             {currentTrack.title}
           </h2>
-          <p className="text-sm font-medium text-white/70 truncate mt-0.5">
-            {currentTrack.artist}
+          <p className="text-sm font-medium text-white/70 truncate mt-0.5 flex items-center gap-1.5">
+            <span>{currentTrack.artist}</span>
+            {currentTrack.plays && (
+              <>
+                <span>•</span>
+                <span className="text-xs font-mono text-emerald-400">{currentTrack.plays}</span>
+              </>
+            )}
           </p>
         </div>
 

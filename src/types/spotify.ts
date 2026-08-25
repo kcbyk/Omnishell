@@ -5,6 +5,7 @@ export interface LyricLine {
 
 export interface Track {
   id: string;
+  youtubeId?: string;
   title: string;
   artist: string;
   artistId?: string;
@@ -13,10 +14,11 @@ export interface Track {
   duration: number; // in seconds
   audioUrl: string;
   lyrics?: LyricLine[];
-  color?: string; // Dominant background color (e.g. #1DB954, #7E22CE, #DC2626)
+  color?: string;
   plays?: string;
   genre?: string;
   releaseYear?: number;
+  isYouTube?: boolean;
 }
 
 export interface Playlist {
@@ -36,6 +38,7 @@ export interface Category {
   title: string;
   color: string;
   coverArt: string;
+  query?: string;
 }
 
 export type RepeatMode = 'off' | 'all' | 'one';

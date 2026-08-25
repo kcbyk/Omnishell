@@ -22,8 +22,11 @@ interface PlayerContextType {
   isFullScreenPlayerOpen: boolean;
   isQueueModalOpen: boolean;
   isLyricsOpen: boolean;
+  isVideoMode: boolean;
   searchQuery: string;
   headerColor: string;
+  youtubeTrendingTracks: Track[];
+  isLoadingTrending: boolean;
 
   // Actions
   playTrack: (track: Track, playlist?: Playlist) => void;
@@ -38,6 +41,7 @@ interface PlayerContextType {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   toggleLike: (trackId: string) => void;
+  toggleVideoMode: () => void;
   isLiked: (trackId: string) => boolean;
   createCustomPlaylist: (title: string, description?: string) => Playlist;
   addTrackToPlaylist: (playlistId: string, track: Track) => void;
@@ -71,11 +75,34 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [isFullScreenPlayerOpen, setIsFullScreenPlayerOpen] = useState<boolean>(false);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState<boolean>(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
+  const [isVideoMode, setIsVideoMode] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [headerColor, setHeaderColor] = useState<string>('#1DB954');
+  const [youtubeTrendingTracks, setYoutubeTrendingTracks] = useState<Track[]>([]);
+  const [isLoadingTrending, setIsLoadingTrending] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const synthIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch real YouTube Trending music on mount
+  useEffect(() => {
+    async function fetchTrending() {
+      setIsLoadingTrending(true);
+      try {
+        const res = await fetch('/api/youtube/trending?category=global');
+        const data = await res.json();
+        if (data.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
+          setYoutubeTrendingTracks(data.tracks);
+          // Prepend to queue
+          setQueue((prev) => [...data.tracks, ...prev]);
+        }
+      } catch (e) {
+        console.warn('Could not fetch trending YouTube tracks:', e);
+      } finally {
+        setIsLoadingTrending(false);
+      }
+    }
+    fetchTrending();
+  }, []);
 
   // Load persistence from LocalStorage
   useEffect(() => {
@@ -104,32 +131,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     } catch (_) {}
   }, [likedTrackIds, playlists, volume]);
 
-  // Web Audio Synthesizer Fallback: Generates sweet musical notes if audio URL takes time
-  const playSynthNote = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; // C, D, E, G, A, C
-      const randomNote = notes[Math.floor(Math.random() * notes.length)];
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(randomNote, ctx.currentTime);
-      gain.gain.setValueAtTime((volume * 0.05), ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.4);
-    } catch (_) {}
-  }, [volume]);
-
-  // Setup HTML5 Audio element
+  // Setup HTML5 Audio element for non-youtube MP3 tracks
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const audio = new Audio();
@@ -137,25 +139,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audioRef.current = audio;
 
       const handleTimeUpdate = () => {
-        if (audioRef.current) {
+        if (audioRef.current && !currentTrack?.youtubeId) {
           setProgress(audioRef.current.currentTime);
         }
       };
 
       const handleLoadedMetadata = () => {
-        if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+        if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration) && !currentTrack?.youtubeId) {
           setDuration(audioRef.current.duration);
         }
       };
 
       const handleEnded = () => {
-        if (repeatMode === 'one') {
-          if (audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play();
+        if (!currentTrack?.youtubeId) {
+          if (repeatMode === 'one') {
+            audioRef.current!.currentTime = 0;
+            audioRef.current!.play();
+          } else {
+            nextTrack();
           }
-        } else {
-          nextTrack();
         }
       };
 
@@ -170,30 +172,48 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         audio.pause();
       };
     }
-  }, [repeatMode]);
+  }, [repeatMode, currentTrack?.youtubeId]);
 
-  // Audio Play / Pause control
+  // High precision timer interval when playing YouTube or audio
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isPlaying) {
+      timer = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= duration) {
+            nextTrack();
+            return 0;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isPlaying, duration]);
+
+  // Audio Play / Pause control for standard MP3
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
-    if (audio.src !== currentTrack.audioUrl) {
-      audio.src = currentTrack.audioUrl;
-      audio.load();
-    }
+    if (!currentTrack.youtubeId) {
+      if (audio.src !== currentTrack.audioUrl) {
+        audio.src = currentTrack.audioUrl;
+        audio.load();
+      }
+      audio.volume = isMuted ? 0 : volume;
 
-    audio.volume = isMuted ? 0 : volume;
-
-    if (isPlaying) {
-      audio.play().catch(() => {
-        // Fallback smooth synthetic ticker if direct MP3 stream is autoplay-blocked
-      });
-      // Trigger synth chime
-      playSynthNote();
+      if (isPlaying) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
     } else {
       audio.pause();
     }
-  }, [currentTrack, isPlaying, volume, isMuted, playSynthNote]);
+  }, [currentTrack, isPlaying, volume, isMuted]);
 
   const playTrack = (track: Track, playlist?: Playlist) => {
     if (playlist) {
@@ -203,16 +223,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setActivePlaylist(playlist);
     }
     setCurrentTrack(track);
-    setDuration(track.duration);
+    setDuration(track.duration || 210);
     setProgress(0);
     setIsPlaying(true);
     if (track.color) setHeaderColor(track.color);
   };
 
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
+  const togglePlay = () => setIsPlaying(!isPlaying);
   const pauseTrack = () => setIsPlaying(false);
   const resumeTrack = () => setIsPlaying(true);
 
@@ -231,7 +248,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setQueueIndex(nextIdx);
     const track = queue[nextIdx];
     setCurrentTrack(track);
-    setDuration(track.duration);
+    setDuration(track.duration || 210);
     setProgress(0);
     setIsPlaying(true);
     if (track.color) setHeaderColor(track.color);
@@ -248,14 +265,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setQueueIndex(prevIdx);
     const track = queue[prevIdx];
     setCurrentTrack(track);
-    setDuration(track.duration);
+    setDuration(track.duration || 210);
     setProgress(0);
     setIsPlaying(true);
     if (track.color) setHeaderColor(track.color);
   };
 
   const seekTo = (seconds: number) => {
-    if (audioRef.current) {
+    if (audioRef.current && !currentTrack?.youtubeId) {
       audioRef.current.currentTime = seconds;
     }
     setProgress(seconds);
@@ -293,6 +310,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const isLiked = (trackId: string) => likedTrackIds.includes(trackId);
+
+  const toggleVideoMode = () => setIsVideoMode(!isVideoMode);
 
   const createCustomPlaylist = (title: string, description = '') => {
     const newPlaylist: Playlist = {
@@ -340,7 +359,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setActivePlaylist(playlist);
       setHeaderColor(playlist.color || '#1DB954');
     }
-    // Scroll to top
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -366,8 +384,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isFullScreenPlayerOpen,
         isQueueModalOpen,
         isLyricsOpen,
+        isVideoMode,
         searchQuery,
         headerColor,
+        youtubeTrendingTracks,
+        isLoadingTrending,
         playTrack,
         togglePlay,
         pauseTrack,
@@ -380,6 +401,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         toggleShuffle,
         toggleRepeat,
         toggleLike,
+        toggleVideoMode,
         isLiked,
         createCustomPlaylist,
         addTrackToPlaylist,
